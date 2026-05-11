@@ -532,8 +532,11 @@ const updateForm = async (req, res) => {
       });
     }
     
-    // Check if user owns this form
-    if (!req.user || !req.user.id || existingForm.createdBy.toString() !== req.user.id) {
+    // Check if user owns this form or is admin
+    const isAdmin = req.user?.role === 'admin';
+    const isOwner = existingForm.createdBy?.toString() === req.user?.id;
+    
+    if (!req.user || !req.user.id || (!isOwner && !isAdmin)) {
       return res.status(403).json({
         success: false,
         message: 'You are not authorized to update this form'
@@ -592,8 +595,11 @@ const deleteForm = async (req, res) => {
       });
     }
     
-    // Check if user owns this form
-    if (!req.user || !req.user.id || form.createdBy.toString() !== req.user.id) {
+    // Check if user owns this form or is admin
+    const isAdmin = req.user?.role === 'admin';
+    const isOwner = form.createdBy?.toString() === req.user?.id;
+    
+    if (!req.user || !req.user.id || (!isOwner && !isAdmin)) {
       return res.status(403).json({
         success: false,
         message: 'You are not authorized to delete this form'

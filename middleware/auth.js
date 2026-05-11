@@ -15,13 +15,21 @@ const authenticateToken = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, JWT_SECRET);
+    console.log('🔍 Auth - Decoded token:', decoded);
+    
     const user = await User.findById(decoded.userId).select('-password');
+    console.log('🔍 Auth - Found user:', !!user);
+    if (user) {
+      console.log('👤 Auth - User details:', { id: user._id, email: user.email, role: user.role, isActive: user.isActive });
+    }
     
     if (!user || !user.isActive) {
+      console.log('❌ Auth - User not found or inactive');
       return res.status(401).json({ message: 'Invalid token or user not active' });
     }
 
     req.user = user;
+    console.log('✅ Auth - Authentication successful');
     next();
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {
@@ -35,18 +43,22 @@ const authenticateToken = async (req, res, next) => {
 };
 
 // Role-based authorization middleware
-const authorizeRoles = (...roles) => {
+const authorizeRoles = (roles) => {
   return (req, res, next) => {
+    
     if (!req.user) {
+      console.log('❌ AuthZ - No user found');
       return res.status(401).json({ message: 'Authentication required' });
     }
 
     if (!roles.includes(req.user.role)) {
+      console.log('❌ AuthZ - Insufficient permissions');
       return res.status(403).json({ 
         message: 'Access denied. Insufficient permissions' 
       });
     }
 
+    console.log('✅ AuthZ - Authorization successful');
     next();
   };
 };

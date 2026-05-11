@@ -92,8 +92,11 @@ const login = async (req, res) => {
   try {
     const { email, password, rememberMe } = req.body;
 
+    console.log('🔍 Login attempt:', { email, password: '***' });
+
     // Validation
     if (!email || !password) {
+      console.log('❌ Validation failed: Missing email or password');
       return res.status(400).json({ 
         message: 'Email and password are required' 
       });
@@ -101,7 +104,18 @@ const login = async (req, res) => {
 
     // Find user by email
     const user = await User.findOne({ email });
+    console.log('👤 User found:', !!user);
+    if (user) {
+      console.log('📋 User details:', { 
+        id: user._id, 
+        email: user.email, 
+        role: user.role, 
+        isActive: user.isActive 
+      });
+    }
+    
     if (!user) {
+      console.log('❌ User not found');
       return res.status(401).json({ 
         message: 'Invalid email or password' 
       });
@@ -109,14 +123,19 @@ const login = async (req, res) => {
 
     // Check if user is active
     if (!user.isActive) {
+      console.log('❌ User is not active');
       return res.status(401).json({ 
         message: 'Account has been deactivated' 
       });
     }
 
     // Compare password
+    console.log('🔑 Comparing password...');
     const isPasswordValid = await user.comparePassword(password);
+    console.log('🔑 Password valid:', isPasswordValid);
+    
     if (!isPasswordValid) {
+      console.log('❌ Password comparison failed');
       return res.status(401).json({ 
         message: 'Invalid email or password' 
       });
